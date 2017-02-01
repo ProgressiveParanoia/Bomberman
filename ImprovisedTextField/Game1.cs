@@ -417,10 +417,9 @@ namespace ImprovisedTextField
                         break; //break out of the while loop once the we find a value that is not equal to the current index
                     }
                     //if the number is still equal to the current index
-                    if (spaceIndex.Length-1 > i) 
+                    if (spaceIndex.Length-1 > i++) 
                         spaceIndex[i] = spaceIndex[i++]; // assign the next index to the current index
-
-                    previousIndex = spaceIndex[i]; //since this is the end of the loop, the current index will be the previous index
+                                            //since this is the end of the loop, the current index will be the previous index
                                             //this will be used to check duplicate indeces
                                              //to prevent enemies spawning on top of each other
                 }
@@ -1533,10 +1532,10 @@ namespace ImprovisedTextField
                         break; //break out of the while loop once the we find a value that is not equal to the current index
                     }
                     //if the number is still equal to the current index
-                    if (spaceIndex.Length - 1 > i)
+                    if (spaceIndex.Length - 1 > i++)
                         spaceIndex[i] = spaceIndex[i++]; // assign the next index to the current index
 
-                    previousIndex = spaceIndex[i]; //since this is the end of the loop, the current index will be the previous index
+                 //   previousIndex = spaceIndex[i]; //since this is the end of the loop, the current index will be the previous index
                                                    //this will be used to check duplicate indeces
                                                    //to prevent enemies spawning on top of each other
                 }
