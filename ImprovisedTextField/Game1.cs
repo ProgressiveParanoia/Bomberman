@@ -1195,10 +1195,7 @@ namespace ImprovisedTextField
         void xmlLoad()
         {
             #region deletionOfBlocks
-            for (int i = softBlocks.Count-1; i >= 0; i--)
-            {
-                softBlocks.Remove(softBlocks[i]);
-            }
+            softBlocks.Clear();
             
             Console.WriteLine(softBlocks.Count);
             #endregion
