@@ -1195,8 +1195,23 @@ namespace ImprovisedTextField
         {
             #region deletionOfBlocks
             softBlocks.Clear();
+
+            Texture2D softTex = Content.Load<Texture2D>("SoftBlocks");
+            Texture2D enemyTex = Content.Load<Texture2D>("enemyMove");
+
+            Blocks savedSoftBlocks = new Blocks();
+            //  Blocks loadSoftBlocks = new Blocks(new Rectangle(0,0,,);
+
+            StreamReader sr = new StreamReader("test");
+            XmlSerializer loadData = new XmlSerializer(savedSoftBlocks.GetType());
+
+            Blocks loadedSoftBlocks = (Blocks)loadData.Deserialize(sr);
+
+            Console.WriteLine();
+
+            sr.Close();
             
-            Console.WriteLine(softBlocks.Count);
+            Console.WriteLine("LOADED!"+loadedSoftBlocks.numberOfBlocks);
             #endregion
         }
         void xmlSave()
@@ -1216,10 +1231,11 @@ namespace ImprovisedTextField
             XmlSerializer saveData = new XmlSerializer(savedSoftBlocks.GetType());
             
             saveData.Serialize(sw, savedSoftBlocks);
+
             sw.Close();
 
             #endregion softBlockSaving
-
+            Console.WriteLine("SAVED!"+savedSoftBlocks.numberOfBlocks);
             
         }
         void load()
