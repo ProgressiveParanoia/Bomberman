@@ -14,6 +14,8 @@ namespace ImprovisedTextField
         public int savedScore;
         public String savedName;
 
+        public string emptySpace;
+
         public ScoreTracker(int Score, String Name)
         {
             this.Name = Name;

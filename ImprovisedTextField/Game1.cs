@@ -1114,11 +1114,7 @@ namespace ImprovisedTextField
             if (isPlaying)
             {
 
-                spriteBatch.Draw(exitBlock.BlockTex, exitBlock.BlockRect, exitBlock.BlockColor);
-                if (!DoubleBlock.hasPower)
-                    spriteBatch.Draw(DoubleBlock.BlockTex, DoubleBlock.BlockRect, DoubleBlock.BlockColor);
-                if (!FireBlock.hasPower)
-                    spriteBatch.Draw(FireBlock.BlockTex, FireBlock.BlockRect, FireBlock.BlockColor);
+               
 
                 foreach (Explosion e in explosionXList)
                 {
@@ -1164,7 +1160,11 @@ namespace ImprovisedTextField
                 {
                     spriteBatch.DrawString(spriteFont, "Game Over!", new Vector2(30, Window.ClientBounds.Height - 35), Color.White);
                 }
-              
+                spriteBatch.Draw(exitBlock.BlockTex, exitBlock.BlockRect, exitBlock.BlockColor);
+                if (!DoubleBlock.hasPower)
+                    spriteBatch.Draw(DoubleBlock.BlockTex, DoubleBlock.BlockRect, DoubleBlock.BlockColor);
+                if (!FireBlock.hasPower)
+                    spriteBatch.Draw(FireBlock.BlockTex, FireBlock.BlockRect, FireBlock.BlockColor);
             }
             #endregion
 
@@ -1195,6 +1195,7 @@ namespace ImprovisedTextField
         {
             #region deletionOfBlocks
             softBlocks.Clear();
+            enemies.Clear();
 
             Texture2D softTex = Content.Load<Texture2D>("SoftBlocks");
             Texture2D enemyTex = Content.Load<Texture2D>("enemyMove");
@@ -1214,9 +1215,18 @@ namespace ImprovisedTextField
             Blocks savedSoftBlocks = new Blocks();
             enemyList savedEnemies = new enemyList();
 
-            StreamReader sr = new StreamReader("test");
+
+            StreamReader sws = new StreamReader("test_score");
+            StreamReader swp = new StreamReader("test_player");
+            StreamReader swl = new StreamReader("test_powlife");
+            StreamReader swd = new StreamReader("test_powdouble");
+            StreamReader swe = new StreamReader("test_powexit");
+            StreamReader swsb = new StreamReader("test_softblock");
+            StreamReader swen = new StreamReader("test_enemy");
+            // xmlSerializer loadData = new XmlSerializer()
 
             XmlSerializer scoreLoadData = new XmlSerializer(savedScore.GetType());
+            
             XmlSerializer playerLoadData = new XmlSerializer(savedPlayer.GetType());
 
             XmlSerializer powLifeLoadData = new XmlSerializer(savedPowLife.GetType());
@@ -1226,19 +1236,25 @@ namespace ImprovisedTextField
             XmlSerializer SoftBlocksloadData = new XmlSerializer(savedSoftBlocks.GetType());
             XmlSerializer enemyloadData = new XmlSerializer(savedEnemies.GetType());
 
-            ScoreTracker loadedScore = scoreLoadData.Deserialize(sr) as ScoreTracker;
-            Player loadedPlayer = playerLoadData.Deserialize(sr) as Player;
+            ScoreTracker loadedScore = scoreLoadData.Deserialize(sws) as ScoreTracker;
+            Player loadedPlayer = playerLoadData.Deserialize(swp) as Player;
 
-            Blocks loadedPowLife = powLifeLoadData.Deserialize(sr) as Blocks;
-            Blocks loadedPowDouble = powLifeLoadData.Deserialize(sr) as Blocks;
-            Blocks loadedExit = exitLoadData.Deserialize(sr) as Blocks;
+            Blocks loadedPowLife = powLifeLoadData.Deserialize(swl) as Blocks;
+            Blocks loadedPowDouble = powLifeLoadData.Deserialize(swd) as Blocks;
+            Blocks loadedExit = exitLoadData.Deserialize(swe) as Blocks;
 
-            Blocks loadedSoftBlocks = SoftBlocksloadData.Deserialize(sr) as Blocks;
-            enemyList loadedEnemies = enemyloadData.Deserialize(sr) as enemyList;
+            Blocks loadedSoftBlocks = SoftBlocksloadData.Deserialize(swsb) as Blocks;
+            enemyList loadedEnemies = enemyloadData.Deserialize(swen) as enemyList;
 
             Console.WriteLine();
 
-            sr.Close();
+            sws.Close();
+            swp.Close();
+            swl.Close();
+            swd.Close();
+            swe.Close();
+            swsb.Close();
+            swen.Close();
 
             name = loadedScore.savedName;
             score = loadedScore.savedScore;
@@ -1246,10 +1262,10 @@ namespace ImprovisedTextField
             player.Position = loadedPlayer.Position;
             player.lives = loadedPlayer.lives;
 
-            FireBlock.position = loadedPowLife.position;
+            FireBlock.Position = loadedPowLife.Position;
             FireBlock.hasPower = loadedPowLife.hasPower;
 
-            DoubleBlock.position = loadedPowDouble.position;
+            DoubleBlock.Position = loadedPowDouble.Position;
             DoubleBlock.hasPower = loadedPowDouble.hasPower;
 
             exitBlock.position = loadedExit.position;
@@ -1289,7 +1305,7 @@ namespace ImprovisedTextField
             enemyList savedEnemies = new enemyList();
 
             savedScore.savedScore = score;
-            savedScore.name = name;
+            savedScore.savedName = name;
 
             savedPlayer.lives = player.lives;
             savedPlayer.Position = player.Position;
@@ -1303,8 +1319,8 @@ namespace ImprovisedTextField
             savedPowDouble.hasPower = DoubleBlock.hasPower;
             savedExit.hasPower = exitBlock.hasPower;
 
-            savedSoftBlocks.numberOfBlocks = softBlocks.Count-1;
-            savedEnemies.numberOfEnemies = enemies.Count - 1;
+            savedSoftBlocks.numberOfBlocks = softBlocks.Count;
+            savedEnemies.numberOfEnemies = enemies.Count;
 
             foreach (Blocks s in softBlocks)
             {
@@ -1316,7 +1332,13 @@ namespace ImprovisedTextField
                 savedEnemies.position.Add(e.Position);
             }
 
-            StreamWriter sw = new StreamWriter("test");
+            StreamWriter sws = new StreamWriter("test_score");
+            StreamWriter swp = new StreamWriter("test_player");
+            StreamWriter swl = new StreamWriter("test_powlife");
+            StreamWriter swd = new StreamWriter("test_powdouble");
+            StreamWriter swe = new StreamWriter("test_powexit");
+            StreamWriter swsb = new StreamWriter("test_softblock");
+            StreamWriter swen = new StreamWriter("test_enemy");
 
             XmlSerializer savedScoreData = new XmlSerializer(savedScore.GetType());
             XmlSerializer savedPlayerData = new XmlSerializer(savedPlayer.GetType());
@@ -1328,17 +1350,24 @@ namespace ImprovisedTextField
             XmlSerializer saveSoftBlockData = new XmlSerializer(savedSoftBlocks.GetType());
             XmlSerializer saveEnemyData = new XmlSerializer(savedEnemies.GetType());
 
-            savedScoreData.Serialize(sw,savedScore);
-            savedPlayerData.Serialize(sw, savedPlayer);
-            savedPowLifeData.Serialize(sw, savedPowLife);
-            savedPowDoubleData.Serialize(sw, savedPowDouble);
+            savedScoreData.Serialize(sws,savedScore);
+            savedPlayerData.Serialize(swp, savedPlayer);
+            savedPowLifeData.Serialize(swl, savedPowLife);
+            savedPowDoubleData.Serialize(swd, savedPowDouble);
 
-            savedExitData.Serialize(sw, savedExit);
+            savedExitData.Serialize(swe, savedExit);
 
-            saveSoftBlockData.Serialize(sw, savedSoftBlocks);
-            saveEnemyData.Serialize(sw, savedEnemies);
+            saveSoftBlockData.Serialize(swsb, savedSoftBlocks);
+            saveEnemyData.Serialize(swen, savedEnemies);
 
-            sw.Close();
+
+            sws.Close();
+            swp.Close();
+            swl.Close();
+            swd.Close();
+            swe.Close();
+            swsb.Close();
+            swen.Close();
 
             #endregion softBlockSaving
             Console.WriteLine("SAVED!"+savedSoftBlocks.numberOfBlocks);
