@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 namespace ImprovisedTextField
 {
-    class Bomb
+    public class Bomb
     {
         private Rectangle rectBomb;
         private Texture2D TexBomb;

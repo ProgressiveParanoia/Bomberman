@@ -17,7 +17,6 @@ namespace ImprovisedTextField
         private Color ColorBlock;
 
         public List<Point> position;
-
         public int numberOfBlocks;
 
         private bool hasBeenPickedUp;

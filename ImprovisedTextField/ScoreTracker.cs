@@ -11,10 +11,19 @@ namespace ImprovisedTextField
         private int Score;
         private String Name;
 
+        public int savedScore;
+        public String savedName;
+
         public ScoreTracker(int Score, String Name)
         {
             this.Name = Name;
             this.Score = Score;
+        }
+
+        public ScoreTracker()
+        {
+            savedScore = 0;
+            savedName = "";
         }
 
         public int score

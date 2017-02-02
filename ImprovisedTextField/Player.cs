@@ -48,6 +48,11 @@ namespace ImprovisedTextField
 
             lives = 3;
         }
+
+        public Player()
+        {
+           
+        }
         public Texture2D PlayerTex
         {
             get { return TexPlayer; }

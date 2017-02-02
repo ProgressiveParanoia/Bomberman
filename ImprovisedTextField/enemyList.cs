@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 namespace ImprovisedTextField
 {
-    class enemyList
+    public class enemyList
     {
         private Rectangle previousBlock;
         private Collision collider;
@@ -51,7 +51,11 @@ namespace ImprovisedTextField
 
             Decision = randomDecision.Next(0,4);
         }
-
+        public enemyList()
+        {
+            position = new List<Point>();
+            numberOfEnemies = 0;
+        }
         public Texture2D enemyTex
         {
             get { return Texenemy; }

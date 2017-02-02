@@ -1199,38 +1199,111 @@ namespace ImprovisedTextField
             Texture2D softTex = Content.Load<Texture2D>("SoftBlocks");
             Texture2D enemyTex = Content.Load<Texture2D>("enemyMove");
 
+            Texture2D exitTexture = Content.Load<Texture2D>("ExitTex");
+            Texture2D multiTexture = Content.Load<Texture2D>("MultiBomb");
+            Texture2D rangeTexture = Content.Load<Texture2D>("LifeTex");
+
+            ScoreTracker savedScore = new ScoreTracker();
+
+            Player savedPlayer = new Player();
+
+            Blocks savedPowLife = new Blocks();
+            Blocks savedPowDouble = new Blocks();
+            Blocks savedExit = new Blocks();
+
             Blocks savedSoftBlocks = new Blocks();
-            //  Blocks loadSoftBlocks = new Blocks(new Rectangle(0,0,,);
+            enemyList savedEnemies = new enemyList();
 
             StreamReader sr = new StreamReader("test");
-            XmlSerializer loadData = new XmlSerializer(savedSoftBlocks.GetType());
 
-            Blocks loadedSoftBlocks = (Blocks)loadData.Deserialize(sr);
+            XmlSerializer scoreLoadData = new XmlSerializer(savedScore.GetType());
+            XmlSerializer playerLoadData = new XmlSerializer(savedPlayer.GetType());
+
+            XmlSerializer powLifeLoadData = new XmlSerializer(savedPowLife.GetType());
+            XmlSerializer powDoubleLoadData = new XmlSerializer(savedPowDouble.GetType());
+
+            XmlSerializer SoftBlocksloadData = new XmlSerializer(savedSoftBlocks.GetType());
+            XmlSerializer enemyloadData = new XmlSerializer(savedEnemies.GetType());
+
+            Blocks loadedSoftBlocks = (Blocks)SoftBlocksloadData.Deserialize(sr);
 
             Console.WriteLine();
 
             sr.Close();
             
+
+            for(int i = 0; i < loadedSoftBlocks.numberOfBlocks; i++)
+            {
+                Blocks sB = new Blocks(new Rectangle(loadedSoftBlocks.position[i].X, loadedSoftBlocks.position[i].Y, 40, 40),softTex,Color.White);
+                softBlocks.Add(sB);
+            }
+
+            
+
+
             Console.WriteLine("LOADED!"+loadedSoftBlocks.numberOfBlocks);
             #endregion
         }
         void xmlSave()
         {
             #region softBlockSaving
+            ScoreTracker savedScore = new ScoreTracker();
+
+            Player savedPlayer = new Player();
+
+            Blocks savedPowLife = new Blocks();
+            Blocks savedPowDouble = new Blocks();
+            Blocks savedExit = new Blocks();
+
             Blocks savedSoftBlocks = new Blocks();
+            enemyList savedEnemies = new enemyList();
+
+            savedScore.savedScore = score;
+
+            savedPlayer.lives = player.lives;
+            savedPlayer.Position = player.Position;
+            savedPlayer.hasMulti = player.hasMulti;
+
+            savedPowLife.Position = FireBlock.Position;
+            savedPowDouble.Position = DoubleBlock.Position;
+            savedExit.Position = exitBlock.Position;
+
+            savedPowLife.hasPower = FireBlock.hasPower;
+            savedPowDouble.hasPower = DoubleBlock.hasPower;
+            savedExit.hasPower = exitBlock.hasPower;
 
             savedSoftBlocks.numberOfBlocks = softBlocks.Count-1;
+            savedEnemies.numberOfEnemies = enemies.Count - 1;
 
             foreach (Blocks s in softBlocks)
             {
                 savedSoftBlocks.position.Add(s.Position);               
             }
+            
+            foreach(enemyList e in enemies)
+            {
+                savedEnemies.position.Add(e.Position);
+            }
 
             StreamWriter sw = new StreamWriter("test");
 
-            XmlSerializer saveData = new XmlSerializer(savedSoftBlocks.GetType());
-            
-            saveData.Serialize(sw, savedSoftBlocks);
+            XmlSerializer savedScoreData = new XmlSerializer(savedScore.GetType());
+            XmlSerializer savedPlayerData = new XmlSerializer(savedPlayer.GetType());
+            XmlSerializer savedPowLifeData = new XmlSerializer(savedPowLife.GetType());
+            XmlSerializer savedPowDoubleData = new XmlSerializer(savedPowDouble.GetType());
+            XmlSerializer savedExitData = new XmlSerializer(savedExit.GetType());
+             
+            XmlSerializer saveSoftBlockData = new XmlSerializer(savedSoftBlocks.GetType());
+            XmlSerializer saveEnemyData = new XmlSerializer(savedEnemies.GetType());
+
+            savedScoreData.Serialize(sw,savedScore);
+            savedPlayerData.Serialize(sw, savedPlayer);
+            savedPowLifeData.Serialize(sw, savedPowLife);
+            savedPowDoubleData.Serialize(sw, savedPowDouble);
+            savedExitData.Serialize(sw, savedExitData);
+
+            saveSoftBlockData.Serialize(sw, savedSoftBlocks);
+            saveEnemyData.Serialize(sw, savedEnemies);
 
             sw.Close();
 
