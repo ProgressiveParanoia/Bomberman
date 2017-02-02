@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ImprovisedTextField
 {
-    class ScoreTracker
+    public class ScoreTracker
     {
         private int Score;
         private String Name;

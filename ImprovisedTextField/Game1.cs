@@ -1221,16 +1221,39 @@ namespace ImprovisedTextField
 
             XmlSerializer powLifeLoadData = new XmlSerializer(savedPowLife.GetType());
             XmlSerializer powDoubleLoadData = new XmlSerializer(savedPowDouble.GetType());
+            XmlSerializer exitLoadData = new XmlSerializer(savedExit.GetType());
 
             XmlSerializer SoftBlocksloadData = new XmlSerializer(savedSoftBlocks.GetType());
             XmlSerializer enemyloadData = new XmlSerializer(savedEnemies.GetType());
 
-            Blocks loadedSoftBlocks = (Blocks)SoftBlocksloadData.Deserialize(sr);
+            ScoreTracker loadedScore = scoreLoadData.Deserialize(sr) as ScoreTracker;
+            Player loadedPlayer = playerLoadData.Deserialize(sr) as Player;
+
+            Blocks loadedPowLife = powLifeLoadData.Deserialize(sr) as Blocks;
+            Blocks loadedPowDouble = powLifeLoadData.Deserialize(sr) as Blocks;
+            Blocks loadedExit = exitLoadData.Deserialize(sr) as Blocks;
+
+            Blocks loadedSoftBlocks = SoftBlocksloadData.Deserialize(sr) as Blocks;
+            enemyList loadedEnemies = enemyloadData.Deserialize(sr) as enemyList;
 
             Console.WriteLine();
 
             sr.Close();
-            
+
+            name = loadedScore.savedName;
+            score = loadedScore.savedScore;
+
+            player.Position = loadedPlayer.Position;
+            player.lives = loadedPlayer.lives;
+
+            FireBlock.position = loadedPowLife.position;
+            FireBlock.hasPower = loadedPowLife.hasPower;
+
+            DoubleBlock.position = loadedPowDouble.position;
+            DoubleBlock.hasPower = loadedPowDouble.hasPower;
+
+            exitBlock.position = loadedExit.position;
+            exitBlock.hasPower = loadedExit.hasPower;
 
             for(int i = 0; i < loadedSoftBlocks.numberOfBlocks; i++)
             {
@@ -1238,9 +1261,16 @@ namespace ImprovisedTextField
                 softBlocks.Add(sB);
             }
 
-            
-
-
+            for(int i =  0; i < loadedEnemies.numberOfEnemies; i++)
+            {
+                enemyList e = new enemyList(new Rectangle(loadedEnemies.position[i].X,loadedEnemies.position[i].Y,27,27),enemyTex,Color.White);
+                enemies.Add(e);
+            }
+            //exitBlock.BlockRect = new Rectangle(exitBlock.Position.X + 5, exitBlock.Position.Y + 5, 30, 30);
+            //DoubleBlock.BlockRect = new Rectangle(DoubleBlock.Position.X + 5, DoubleBlock.Position.Y + 5, 30, 30);
+            //FireBlock.BlockRect = new Rectangle(FireBlock.Position.X + 5, FireBlock.Position.Y + 5, 30, 30);
+            //enemyList e = new enemyList(new Rectangle(40, 160, 27, 27), enemyTex, Color.White); //create a list of enemies
+            //enemies.Add(e);
             Console.WriteLine("LOADED!"+loadedSoftBlocks.numberOfBlocks);
             #endregion
         }
@@ -1259,6 +1289,7 @@ namespace ImprovisedTextField
             enemyList savedEnemies = new enemyList();
 
             savedScore.savedScore = score;
+            savedScore.name = name;
 
             savedPlayer.lives = player.lives;
             savedPlayer.Position = player.Position;
@@ -1291,6 +1322,7 @@ namespace ImprovisedTextField
             XmlSerializer savedPlayerData = new XmlSerializer(savedPlayer.GetType());
             XmlSerializer savedPowLifeData = new XmlSerializer(savedPowLife.GetType());
             XmlSerializer savedPowDoubleData = new XmlSerializer(savedPowDouble.GetType());
+
             XmlSerializer savedExitData = new XmlSerializer(savedExit.GetType());
              
             XmlSerializer saveSoftBlockData = new XmlSerializer(savedSoftBlocks.GetType());
@@ -1300,7 +1332,8 @@ namespace ImprovisedTextField
             savedPlayerData.Serialize(sw, savedPlayer);
             savedPowLifeData.Serialize(sw, savedPowLife);
             savedPowDoubleData.Serialize(sw, savedPowDouble);
-            savedExitData.Serialize(sw, savedExitData);
+
+            savedExitData.Serialize(sw, savedExit);
 
             saveSoftBlockData.Serialize(sw, savedSoftBlocks);
             saveEnemyData.Serialize(sw, savedEnemies);

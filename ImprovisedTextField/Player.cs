@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace ImprovisedTextField
 {
-    class Player
+    public class Player
     {
         private Rectangle previousBlock;
         private Collision collider;
