@@ -38,6 +38,10 @@ namespace ImprovisedTextField
         bool playerKilled;
         bool gameEnd;
 
+        bool inGameSave;
+
+        int timer;
+
         List<Blocks> spaceChecker;
         List<Point> availableSpace;
         List<Point> collidingPositions;
@@ -85,10 +89,11 @@ namespace ImprovisedTextField
 
         string name;
         string fileName;
+        string saveName="";
         int score;
 
         int exitIndex;
-
+        bool isPressingEsc;
         int rangeBombIndex;
         int doubleBombIndex;
         public Game1()
@@ -460,14 +465,120 @@ namespace ImprovisedTextField
            
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
-                if(isStart||isLoading)
-                isMainMenu = true;
-                isStart = false;
-                isLoading = false;
-            }
+                if (isStart || isLoading)
+                {
+                    isMainMenu = true;
+                    isStart = false;
+                    isLoading = false;
+                }
 
+                if (isPlaying && !isPressingEsc)
+                {
+                    inGameSave = true;
+                    isPlaying = false;
+                }
+                else
+                if(inGameSave && !isPressingEsc)
+                {
+                    isPlaying = true;
+                    inGameSave = false;
+                }
+                isPressingEsc = true;
+            }
+            else
+            {
+                isPressingEsc = false;
+            }
+            if (inGameSave)
+                {
+                Rectangle mouseIn = new Rectangle(Mouse.GetState().X, Mouse.GetState().Y, 50, 50);
+                Texture2D OkBtn = Content.Load<Texture2D>("OKBtn");
+                    OkayBtn = new Button(new Rectangle(200, Window.ClientBounds.Height / 2 + 10, 100, 50), OkBtn, Color.White);
+
+                    Keys[] d = Keyboard.GetState().GetPressedKeys();
+
+                    foreach (Keys k in d)
+                    {
+
+                        if (checkPress)
+                        {
+                            try
+                            {
+                                char charfileName = char.Parse(k.ToString());
+
+                                if (char.IsLetter(charfileName) && saveName.Length <= 10)
+                                {
+                                    saveName += k.ToString();
+                                }
+                            }
+                            catch { }
+
+                            if (k == Keys.Back && saveName.Length > 0)
+                            {
+                                saveName = saveName.Substring(0, saveName.Length - 1);
+                            }
+
+                            if (k == Keys.Space)
+                            {
+                                saveName += " ";
+                            }
+
+                            if (k == Keys.OemMinus)
+                            {
+                                saveName += "_";
+                            }
+                        }
+                    }
+
+                    if (d.Length > 0)
+                    {
+                        checkPress = false;
+                    }
+                    else
+                    {
+                        checkPress = true;
+                    }
+
+                    if (OkayBtn.btnRect.Intersects(mouseIn))
+                    {
+                        if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+                        {
+                            if (saveName.Length > 0)
+                            {
+                                showSaved = true;
+                                showWarning = false;
+
+                                isLoading = false;
+                                isStart = false;
+                                xmlSave(saveName);
+                            }
+                            else
+                            {
+                                showSaved = false;
+                                showWarning = true;
+                            }
+                        }
+                    }
+
+                    if (ClearBtn.btnRect.Intersects(mouseIn))
+                    {
+                        if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+                        {
+                            saveName = "";
+
+                            showSaved = false;
+                            showWarning = false;
+
+                            isMainMenu = true;
+                            isPlaying = false;
+                            isSaving = false;
+                            inGameSave = false;
+                        isLoading = false;
+                        }
+                    }
+                }
             #region Menu
-            if (!isPlaying)
+            if (!isPlaying && !inGameSave)
             {
                 Rectangle mouseIn = new Rectangle(Mouse.GetState().X, Mouse.GetState().Y, 50, 50);
                 gameEnd = false;
@@ -512,7 +623,7 @@ namespace ImprovisedTextField
                         }
                     }
                 }
-
+                
                 if (isLoading)
                 {
                     Texture2D OkBtn = Content.Load<Texture2D>("OKBtn");
@@ -571,7 +682,9 @@ namespace ImprovisedTextField
                                 showWarning = false;
 
                                 isPlaying = true;
+                                isLoading = false;
                                 isStart = false;
+                                xmlLoad(fileName);
                             }
                             else
                             {
@@ -676,7 +789,7 @@ namespace ImprovisedTextField
             }
             #endregion
             #region gameplay
-            if (isPlaying)
+            if (isPlaying && !inGameSave)
             {
                 if (Keyboard.GetState().IsKeyDown(Keys.R))
                 {
@@ -685,12 +798,12 @@ namespace ImprovisedTextField
 
                 if (Keyboard.GetState().IsKeyDown(Keys.K))
                 {
-                    xmlSave();
+                    xmlSave(fileName);
                 }
 
                 if (Keyboard.GetState().IsKeyDown(Keys.L))
                 {
-                    xmlLoad();
+                    xmlLoad(fileName);
                 }
 
                 player.Move();
@@ -1056,17 +1169,24 @@ namespace ImprovisedTextField
             #region drawMenu
             if (!isPlaying)
             {
-                if (isStart||isLoading)
+                if (isStart||isLoading||inGameSave)
                 {
                     spriteBatch.Draw(textFieldTex, new Rectangle(0, Window.ClientBounds.Height / 2 - 100, 800, 50), Color.White);
                     spriteBatch.Draw(OkayBtn.btnTex, OkayBtn.btnRect, OkayBtn.btnColor);
                     spriteBatch.Draw(ClearBtn.btnTex, ClearBtn.btnRect, ClearBtn.btnColor);
 
-                    spriteBatch.DrawString(spriteFont, name, new Vector2(20, ((Window.ClientBounds.Height / 2) - 100) + 10), Color.Blue);
+                    if(isStart)
+                        spriteBatch.DrawString(spriteFont, name, new Vector2(20, ((Window.ClientBounds.Height / 2) - 100) + 10), Color.Blue);
 
                     if (isLoading)
-                        spriteBatch.DrawString(spriteFont, "File Name", new Vector2(20, ((Window.ClientBounds.Height / 2) - 200) + 10), Color.Blue);
-
+                        spriteBatch.DrawString(spriteFont, "LOAD File Name", new Vector2(20, ((Window.ClientBounds.Height / 2) - 200) + 10), Color.Blue);
+                    if (inGameSave)
+                    {
+                        spriteBatch.DrawString(spriteFont, "SAVE File Name", new Vector2(20, ((Window.ClientBounds.Height / 2) - 200) + 10), Color.Blue);
+                        spriteBatch.DrawString(spriteFont, saveName, new Vector2(20, ((Window.ClientBounds.Height / 2) - 100) + 10), Color.Blue);
+                      //  name = "";
+                        fileName = "";
+                    }
                     if (showSaved && isStart)
                     {
                         spriteBatch.DrawString(spriteFont, "Data Saved!", new Vector2(Window.ClientBounds.Width / 2 - 100, ((Window.ClientBounds.Height / 2) + 100) + 10), Color.Blue);
@@ -1074,13 +1194,17 @@ namespace ImprovisedTextField
 
                     if (isLoading)
                     {
-
+                        spriteBatch.DrawString(spriteFont, fileName, new Vector2(20, ((Window.ClientBounds.Height / 2) - 100) + 10), Color.Blue);
+                       // name="";
+                        saveName = "";
                     }
 
                     if (showWarning)
                     {
                         spriteBatch.DrawString(spriteFont, "Empty Input!", new Vector2(Window.ClientBounds.Width / 2 - 100, ((Window.ClientBounds.Height / 2) + 100) + 10), Color.Blue);
                     }
+
+                    
                 }
 
                 if (isMainMenu)
@@ -1099,11 +1223,11 @@ namespace ImprovisedTextField
                     spriteBatch.DrawString(spriteFont, "Scores", new Vector2(450, 50), Color.White);
                     for (int i = 0; i < scores.Count; i++)
                     {
-                        if (i < 5)
+                        if (i < 10)
                         {
-                            spriteBatch.DrawString(spriteFont, (i + 1).ToString(), new Vector2(100, 80 * (i + 1)), Color.White);
-                            spriteBatch.DrawString(spriteFont, scores[i].name, new Vector2(200, 80 * (i + 1)), Color.White);
-                            spriteBatch.DrawString(spriteFont, scores[i].score.ToString(), new Vector2(450, 80 * (i + 1)), Color.White);
+                            spriteBatch.DrawString(spriteFont, (i + 1).ToString(), new Vector2(100, 40 +(40* (i + 1))), Color.White);
+                            spriteBatch.DrawString(spriteFont, scores[i].name, new Vector2(200, 40 + (40 * (i + 1))), Color.White);
+                            spriteBatch.DrawString(spriteFont, scores[i].score.ToString(), new Vector2(450, 40 + (40 * (i + 1))), Color.White);
                         }
                     }
                 }
@@ -1113,9 +1237,6 @@ namespace ImprovisedTextField
             #region drawIngame
             if (isPlaying)
             {
-
-               
-
                 foreach (Explosion e in explosionXList)
                 {
                     spriteBatch.Draw(e.ExplosionTex, e.ExplosionRect, Color.White);
@@ -1155,6 +1276,7 @@ namespace ImprovisedTextField
                 {
                     spriteBatch.DrawString(spriteFont, "Lives:" + player.lives.ToString(), new Vector2(250, Window.ClientBounds.Height - 35), Color.White);
                     spriteBatch.DrawString(spriteFont, "Score:" + score.ToString(), new Vector2(30, Window.ClientBounds.Height - 35), Color.White);
+                    spriteBatch.DrawString(spriteFont, "Name:" + name.ToString(), new Vector2(400, Window.ClientBounds.Height - 35), Color.White);
                 }
                 else
                 {
@@ -1191,7 +1313,7 @@ namespace ImprovisedTextField
 
         }
         
-        void xmlLoad()
+        void xmlLoad(String fN)
         {
             #region deletionOfBlocks
             softBlocks.Clear();
@@ -1216,13 +1338,13 @@ namespace ImprovisedTextField
             enemyList savedEnemies = new enemyList();
 
 
-            StreamReader sws = new StreamReader("test_score");
-            StreamReader swp = new StreamReader("test_player");
-            StreamReader swl = new StreamReader("test_powlife");
-            StreamReader swd = new StreamReader("test_powdouble");
-            StreamReader swe = new StreamReader("test_powexit");
-            StreamReader swsb = new StreamReader("test_softblock");
-            StreamReader swen = new StreamReader("test_enemy");
+            StreamReader sws = new StreamReader(fN+"_score");
+            StreamReader swl = new StreamReader(fN+"_powlife");
+            StreamReader swp = new StreamReader(fN+"_player");
+            StreamReader swd = new StreamReader(fN+"_powdouble");
+            StreamReader swe = new StreamReader(fN + "_powexit");
+            StreamReader swsb = new StreamReader(fN+"_softblock");
+            StreamReader swen = new StreamReader(fN + "_enemy");
             // xmlSerializer loadData = new XmlSerializer()
 
             XmlSerializer scoreLoadData = new XmlSerializer(savedScore.GetType());
@@ -1268,7 +1390,7 @@ namespace ImprovisedTextField
             DoubleBlock.Position = loadedPowDouble.Position;
             DoubleBlock.hasPower = loadedPowDouble.hasPower;
 
-            exitBlock.position = loadedExit.position;
+            exitBlock.Position = loadedExit.Position;
             exitBlock.hasPower = loadedExit.hasPower;
 
             for(int i = 0; i < loadedSoftBlocks.numberOfBlocks; i++)
@@ -1290,7 +1412,7 @@ namespace ImprovisedTextField
             Console.WriteLine("LOADED!"+loadedSoftBlocks.numberOfBlocks);
             #endregion
         }
-        void xmlSave()
+        void xmlSave(String fN)
         {
             #region softBlockSaving
             ScoreTracker savedScore = new ScoreTracker();
@@ -1332,13 +1454,13 @@ namespace ImprovisedTextField
                 savedEnemies.position.Add(e.Position);
             }
 
-            StreamWriter sws = new StreamWriter("test_score");
-            StreamWriter swp = new StreamWriter("test_player");
-            StreamWriter swl = new StreamWriter("test_powlife");
-            StreamWriter swd = new StreamWriter("test_powdouble");
-            StreamWriter swe = new StreamWriter("test_powexit");
-            StreamWriter swsb = new StreamWriter("test_softblock");
-            StreamWriter swen = new StreamWriter("test_enemy");
+            StreamWriter sws = new StreamWriter(fN+"_score");
+            StreamWriter swp = new StreamWriter(fN+"_player");
+            StreamWriter swl = new StreamWriter(fN+"_powlife");
+            StreamWriter swd = new StreamWriter(fN+"_powdouble");
+            StreamWriter swe = new StreamWriter(fN+"_powexit");
+            StreamWriter swsb = new StreamWriter(fN+"_softblock");
+            StreamWriter swen = new StreamWriter(fN+"_enemy");
 
             XmlSerializer savedScoreData = new XmlSerializer(savedScore.GetType());
             XmlSerializer savedPlayerData = new XmlSerializer(savedPlayer.GetType());
