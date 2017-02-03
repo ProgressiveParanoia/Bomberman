@@ -1237,6 +1237,11 @@ namespace ImprovisedTextField
             #region drawIngame
             if (isPlaying)
             {
+                spriteBatch.Draw(exitBlock.BlockTex, exitBlock.BlockRect, exitBlock.BlockColor);
+                if (!DoubleBlock.hasPower)
+                    spriteBatch.Draw(DoubleBlock.BlockTex, DoubleBlock.BlockRect, DoubleBlock.BlockColor);
+                if (!FireBlock.hasPower)
+                    spriteBatch.Draw(FireBlock.BlockTex, FireBlock.BlockRect, FireBlock.BlockColor);
                 foreach (Explosion e in explosionXList)
                 {
                     spriteBatch.Draw(e.ExplosionTex, e.ExplosionRect, Color.White);
@@ -1282,11 +1287,7 @@ namespace ImprovisedTextField
                 {
                     spriteBatch.DrawString(spriteFont, "Game Over!", new Vector2(30, Window.ClientBounds.Height - 35), Color.White);
                 }
-                spriteBatch.Draw(exitBlock.BlockTex, exitBlock.BlockRect, exitBlock.BlockColor);
-                if (!DoubleBlock.hasPower)
-                    spriteBatch.Draw(DoubleBlock.BlockTex, DoubleBlock.BlockRect, DoubleBlock.BlockColor);
-                if (!FireBlock.hasPower)
-                    spriteBatch.Draw(FireBlock.BlockTex, FireBlock.BlockRect, FireBlock.BlockColor);
+               
             }
             #endregion
 
@@ -1295,37 +1296,25 @@ namespace ImprovisedTextField
         }
 
         #region saveAndLoad
-        void save()
-        {
-            ScoreTracker temp = new ScoreTracker(score,name);
-            scores.Add(temp);
 
-            StreamWriter sw = new StreamWriter("HighScores");
-            scores.Sort((a, b) => -1 * a.score.CompareTo(b.score));
-
-            foreach (ScoreTracker s in scores)
-            {
-                sw.WriteLine(s.name+","+s.score);
-            }
-
-            
-            sw.Close();
-
-        }
-        
+        #region XMLSaveAndLoad
         void xmlLoad(String fN)
         {
             #region deletionOfBlocks
             softBlocks.Clear();
             enemies.Clear();
+            #endregion
 
+            #region TextureLoading
             Texture2D softTex = Content.Load<Texture2D>("SoftBlocks");
             Texture2D enemyTex = Content.Load<Texture2D>("enemyMove");
 
             Texture2D exitTexture = Content.Load<Texture2D>("ExitTex");
             Texture2D multiTexture = Content.Load<Texture2D>("MultiBomb");
             Texture2D rangeTexture = Content.Load<Texture2D>("LifeTex");
+            #endregion
 
+            #region ObjectDeclaration
             ScoreTracker savedScore = new ScoreTracker();
 
             Player savedPlayer = new Player();
@@ -1336,8 +1325,9 @@ namespace ImprovisedTextField
 
             Blocks savedSoftBlocks = new Blocks();
             enemyList savedEnemies = new enemyList();
+            #endregion
 
-
+            #region serialization
             StreamReader sws = new StreamReader(fN+"_score");
             StreamReader swl = new StreamReader(fN+"_powlife");
             StreamReader swp = new StreamReader(fN+"_player");
@@ -1404,17 +1394,20 @@ namespace ImprovisedTextField
                 enemyList e = new enemyList(new Rectangle(loadedEnemies.position[i].X,loadedEnemies.position[i].Y,27,27),enemyTex,Color.White);
                 enemies.Add(e);
             }
+
+            #endregion
             //exitBlock.BlockRect = new Rectangle(exitBlock.Position.X + 5, exitBlock.Position.Y + 5, 30, 30);
             //DoubleBlock.BlockRect = new Rectangle(DoubleBlock.Position.X + 5, DoubleBlock.Position.Y + 5, 30, 30);
             //FireBlock.BlockRect = new Rectangle(FireBlock.Position.X + 5, FireBlock.Position.Y + 5, 30, 30);
             //enemyList e = new enemyList(new Rectangle(40, 160, 27, 27), enemyTex, Color.White); //create a list of enemies
             //enemies.Add(e);
             Console.WriteLine("LOADED!"+loadedSoftBlocks.numberOfBlocks);
-            #endregion
+            
         }
+      
         void xmlSave(String fN)
         {
-            #region softBlockSaving
+            #region ObjectDeclaration
             ScoreTracker savedScore = new ScoreTracker();
 
             Player savedPlayer = new Player();
@@ -1425,7 +1418,9 @@ namespace ImprovisedTextField
 
             Blocks savedSoftBlocks = new Blocks();
             enemyList savedEnemies = new enemyList();
+            #endregion
 
+            #region savedObjectAssignment
             savedScore.savedScore = score;
             savedScore.savedName = name;
 
@@ -1444,6 +1439,7 @@ namespace ImprovisedTextField
             savedSoftBlocks.numberOfBlocks = softBlocks.Count;
             savedEnemies.numberOfEnemies = enemies.Count;
 
+            
             foreach (Blocks s in softBlocks)
             {
                 savedSoftBlocks.position.Add(s.Position);               
@@ -1453,7 +1449,9 @@ namespace ImprovisedTextField
             {
                 savedEnemies.position.Add(e.Position);
             }
+            #endregion
 
+            #region serialization
             StreamWriter sws = new StreamWriter(fN+"_score");
             StreamWriter swp = new StreamWriter(fN+"_player");
             StreamWriter swl = new StreamWriter(fN+"_powlife");
@@ -1490,11 +1488,12 @@ namespace ImprovisedTextField
             swe.Close();
             swsb.Close();
             swen.Close();
-
-            #endregion softBlockSaving
+            #endregion
             Console.WriteLine("SAVED!"+savedSoftBlocks.numberOfBlocks);
             
         }
+        #endregion
+        #region StreamReaderAndStreamWriter
         void load()
         {
             
@@ -1517,7 +1516,29 @@ namespace ImprovisedTextField
 
             sr.Close();
         }
+        void save()
+        {
+            ScoreTracker temp = new ScoreTracker(score, name);
+            scores.Add(temp);
+
+            StreamWriter sw = new StreamWriter("HighScores");
+            scores.Sort((a, b) => -1 * a.score.CompareTo(b.score));
+
+            foreach (ScoreTracker s in scores)
+            {
+                sw.WriteLine(s.name + "," + s.score);
+            }
+
+
+            sw.Close();
+
+        }
         #endregion
+
+        #region BinarySaveAndLoad
+        #endregion
+        #endregion
+
         void Reset()
         {
             Texture2D titleTex = Content.Load<Texture2D>("Title");
