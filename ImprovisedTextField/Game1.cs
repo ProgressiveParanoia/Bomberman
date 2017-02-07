@@ -6,6 +6,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 namespace ImprovisedTextField
 {
     public class Game1 : Game
@@ -48,6 +49,7 @@ namespace ImprovisedTextField
         List<Point> NonCollidingPositions;
 
         List<ScoreTracker> scores;
+        List<BinarySaveClass> binaryScores;
 
         List<enemyList> enemies;
 
@@ -102,7 +104,7 @@ namespace ImprovisedTextField
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             deathDelay = 0;
-
+            
         }
 
         protected override void Initialize()
@@ -158,6 +160,7 @@ namespace ImprovisedTextField
             enemies = new List<enemyList>();
 
             scores = new List<ScoreTracker>();
+            binaryScores = new List<BinarySaveClass>();
 
             int RightPosition = 0;
             int BottomPosition = 0;
@@ -439,10 +442,15 @@ namespace ImprovisedTextField
 
             #endregion
 
-            load();
+            // load();
+            binaryLoadScore();
+           
             name = "";
             fileName = "";
             score = 0;
+
+            
+
             isMainMenu = true;
             checkPress = true;
 
@@ -550,8 +558,9 @@ namespace ImprovisedTextField
 
                                 isLoading = false;
                                 isStart = false;
-                                xmlSave(saveName);
-                            }
+                             // xmlSave(saveName);
+                            binarySave(saveName);
+                        }
                             else
                             {
                                 showSaved = false;
@@ -573,7 +582,12 @@ namespace ImprovisedTextField
                             isPlaying = false;
                             isSaving = false;
                             inGameSave = false;
-                        isLoading = false;
+                            isLoading = false;
+
+                            Reset();
+                            name = "";
+                            score = 0;
+                            player.lives = 3;
                         }
                     }
                 }
@@ -684,7 +698,8 @@ namespace ImprovisedTextField
                                 isPlaying = true;
                                 isLoading = false;
                                 isStart = false;
-                                xmlLoad(fileName);
+                                //xmlLoad(fileName);
+                                binaryLoad(fileName);
                             }
                             else
                             {
@@ -796,15 +811,27 @@ namespace ImprovisedTextField
                     Reset();
                 }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.K))
+                if (Keyboard.GetState().IsKeyDown(Keys.K) && !isSaving)
                 {
-                    xmlSave(fileName);
+                    //  xmlSave(fileName);
+                    binarySave(fileName);
+                    isSaving = true;
+                }else
+                if ((Keyboard.GetState().IsKeyUp(Keys.K))){
+                    isSaving = false;
                 }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.L))
+                if (Keyboard.GetState().IsKeyDown(Keys.L) && !isLoading)
                 {
-                    xmlLoad(fileName);
+                    //xmlLoad(fileName);
+                    binaryLoad(fileName);
+                    isLoading = true;
+                } else
+                    if ((Keyboard.GetState().IsKeyUp(Keys.L)))
+                {
+                    isLoading = false;
                 }
+
 
                 player.Move();
                 player.playerAnimation();
@@ -845,8 +872,6 @@ namespace ImprovisedTextField
 
                     if (b.Time > 120)
                     {
-                      
-                      
                         Explosion CenterSegment = new Explosion(new Rectangle((b.Position.X + 5) - 5, (b.Position.Y + 5) - 5, 30, 30), explosionSegment, Color.White);
                         CenterSegment.isCenter = true;
                         explosionYList.Add(CenterSegment);
@@ -947,7 +972,6 @@ namespace ImprovisedTextField
                             {
                                 if (e.ExplosionRect.Intersects(s.BlockRect))
                                 {
-                     
                                     softBlocks.Remove(s);
                                     explosionXList.Remove(e);
                                     goto somewhere;
@@ -1124,6 +1148,7 @@ namespace ImprovisedTextField
 
                         gameEnd = true;
                         save();
+                        binarySaveScore();
                         player.lives = 3;
 
                         player.hasBombRange = false;
@@ -1221,13 +1246,19 @@ namespace ImprovisedTextField
                     spriteBatch.DrawString(spriteFont, "High Scores", new Vector2 (Window.ClientBounds.Width / 2 - 100, 20), Color.White);
                     spriteBatch.DrawString(spriteFont, "Name", new Vector2(200, 50), Color.White);
                     spriteBatch.DrawString(spriteFont, "Scores", new Vector2(450, 50), Color.White);
-                    for (int i = 0; i < scores.Count; i++)
+                    for (int i = 0; i < binaryScores.Count; i++)
                     {
                         if (i < 10)
                         {
-                            spriteBatch.DrawString(spriteFont, (i + 1).ToString(), new Vector2(100, 40 +(40* (i + 1))), Color.White);
-                            spriteBatch.DrawString(spriteFont, scores[i].name, new Vector2(200, 40 + (40 * (i + 1))), Color.White);
-                            spriteBatch.DrawString(spriteFont, scores[i].score.ToString(), new Vector2(450, 40 + (40 * (i + 1))), Color.White);
+                            //stream reader and writer method
+                            //spriteBatch.DrawString(spriteFont, (i + 1).ToString(), new Vector2(100, 40 +(40* (i + 1))), Color.White);
+                            //spriteBatch.DrawString(spriteFont, scores[i].name, new Vector2(200, 40 + (40 * (i + 1))), Color.White);
+                            //spriteBatch.DrawString(spriteFont, scores[i].score.ToString(), new Vector2(450, 40 + (40 * (i + 1))), Color.White);
+                            
+                            //binary save and load
+                            spriteBatch.DrawString(spriteFont, (i + 1).ToString(), new Vector2(100, 40 + (40 * (i + 1))), Color.White);
+                            spriteBatch.DrawString(spriteFont, binaryScores[i].name, new Vector2(200, 40 + (40 * (i + 1))), Color.White);
+                            spriteBatch.DrawString(spriteFont, binaryScores[i].Score.ToString(), new Vector2(450, 40 + (40 * (i + 1))), Color.White);
                         }
                     }
                 }
@@ -1495,8 +1526,7 @@ namespace ImprovisedTextField
         #endregion
         #region StreamReaderAndStreamWriter
         void load()
-        {
-            
+        { 
             StreamReader sr = new StreamReader("HighScores");
 
             string filedata = "";
@@ -1536,6 +1566,237 @@ namespace ImprovisedTextField
         #endregion
 
         #region BinarySaveAndLoad
+        void binaryLoadScore()
+        {
+            binaryScores = new List<BinarySaveClass>();
+
+            FileStream highScoreStreamLoad = new FileStream("BIN/HighScore.DAB", FileMode.Open);
+
+            BinaryFormatter scorebinaryDeserialization = new BinaryFormatter();
+            BinarySaveClass[] scoreLoad = scorebinaryDeserialization.Deserialize(highScoreStreamLoad) as BinarySaveClass[];
+
+            for (int i = 0; i < scoreLoad.Length; i++)
+            {
+                BinarySaveClass BScore = new BinarySaveClass();
+                BScore.name = scoreLoad[i].name;
+                BScore.Score = scoreLoad[i].Score;
+                binaryScores.Add(BScore);
+            }
+
+            binaryScores.Sort((a, b) => -1 * a.Score.CompareTo(b.Score));
+
+            highScoreStreamLoad.Close();
+        }
+
+        void binarySaveScore()
+        {
+            BinarySaveClass tempSave = new BinarySaveClass();
+            tempSave.name = name;
+            tempSave.Score = score;
+
+            binaryScores.Add(tempSave);
+
+            binaryScores.Sort((a, b) => -1 * a.Score.CompareTo(b.Score));
+
+            FileStream highScoreStreamSave = new FileStream("BIN/HighScore.DAB", FileMode.Create);
+            BinaryFormatter binarySerialization = new BinaryFormatter();
+            BinarySaveClass[] saveScores = new BinarySaveClass[binaryScores.Count];
+
+            for (int i = 0; i < binaryScores.Count; i++)
+            {
+                saveScores[i] = new BinarySaveClass();
+
+                saveScores[i].name = binaryScores[i].name;
+                saveScores[i].Score = binaryScores[i].Score;
+            }
+
+            binarySerialization.Serialize(highScoreStreamSave, saveScores);
+            highScoreStreamSave.Close();
+        }
+        void binaryLoad(String fN)
+        {
+            Texture2D SoftBlockTex = Content.Load<Texture2D>("SoftBlocks");
+            Texture2D enemyTex = Content.Load<Texture2D>("enemyMove");
+            Texture2D exitTexture = Content.Load<Texture2D>("ExitTex");
+            Texture2D multiTexture = Content.Load<Texture2D>("MultiBomb");
+            Texture2D rangeTexture = Content.Load<Texture2D>("LifeTex");
+
+            FileStream blockStreamLoad = new FileStream("BIN/" + fN + "_blockFile.DAB", FileMode.Open);
+            FileStream enemyStreamLoad = new FileStream("BIN/" + fN + "enemyFile.DAB", FileMode.Open);
+
+            FileStream lifePowUpStreamLoad = new FileStream("BIN/" + fN + "lifeFile.DAB", FileMode.Open);
+            FileStream doublePowUpStreamLoad = new FileStream("BIN/" + fN + "doubleFile.DAB", FileMode.Open);
+            FileStream exitStreamLoad = new FileStream("BIN/" + fN + "exitFile.DAB", FileMode.Open);
+            FileStream currentScoreStreamLoad = new FileStream("BIN/" + fN + "CURRENT_SCORE.DAB", FileMode.Open);
+
+            FileStream playerStreamLoad = new FileStream("BIN/" + fN + "playerFile.DAB", FileMode.Open);
+           
+            BinaryFormatter BlockbinaryDeserialization = new BinaryFormatter();
+            BinaryFormatter EnemybinaryDeserialization = new BinaryFormatter();
+
+            BinaryFormatter currentScoreBinaryDeserialization = new BinaryFormatter();
+            BinaryFormatter LifePowbinaryDeserialization = new BinaryFormatter();
+            BinaryFormatter DoublePowbinaryDeserialization = new BinaryFormatter();
+            BinaryFormatter exitbinaryDeserialization = new BinaryFormatter();
+            BinaryFormatter PlayerbinaryDeserialization = new BinaryFormatter();
+
+            BinarySaveClass[] BlockLoad = BlockbinaryDeserialization.Deserialize(blockStreamLoad) as BinarySaveClass[];
+            BinarySaveClass[] EnemyLoad = EnemybinaryDeserialization.Deserialize(enemyStreamLoad) as BinarySaveClass[];
+
+            BinarySaveClass currentScoreLoad = currentScoreBinaryDeserialization.Deserialize(currentScoreStreamLoad) as BinarySaveClass;
+            BinarySaveClass lifePowLoad = LifePowbinaryDeserialization.Deserialize(lifePowUpStreamLoad) as BinarySaveClass;
+            BinarySaveClass doublePowLoad = DoublePowbinaryDeserialization.Deserialize(doublePowUpStreamLoad) as BinarySaveClass;
+            BinarySaveClass exitLoad = exitbinaryDeserialization.Deserialize(exitStreamLoad) as BinarySaveClass;
+            BinarySaveClass PlayerLoad = PlayerbinaryDeserialization.Deserialize(playerStreamLoad) as BinarySaveClass;
+
+            //   BinarySaveClass
+            softBlocks = new List<Blocks>();
+            enemies = new List<enemyList>();
+            
+            for (int i = 0; i < BlockLoad.Length; i++)
+            {
+                Blocks sB = new Blocks(new Rectangle(BlockLoad[i].blockRectPosX,BlockLoad[i].blockRectPosY,BlockLoad[i].blockRectWidth,BlockLoad[i].blockRectHeight),
+                    SoftBlockTex, Color.White);
+                softBlocks.Add(sB);
+            }
+
+            for (int i = 0; i < EnemyLoad.Length; i++)
+            {
+                enemyList eN = new enemyList(new Rectangle(EnemyLoad[i].EnemyRectPosX, EnemyLoad[i].EnemyRectPosY, EnemyLoad[i].EnemyRectWidth, EnemyLoad[i].EnemyRectHeight),
+                    enemyTex, Color.White);
+
+                eN.decision = EnemyLoad[i].EnemyDirection;
+                eN.Timer = EnemyLoad[i].EnemyTimer;
+
+                enemies.Add(eN);
+            }
+
+            FireBlock.Position = new Point(lifePowLoad.blockRectPosX,lifePowLoad.blockRectPosY);
+            FireBlock.hasPower = lifePowLoad.blockHasInteracted;
+
+            DoubleBlock.Position = new Point(doublePowLoad.blockRectPosX, doublePowLoad.blockRectPosY);
+            DoubleBlock.hasPower = doublePowLoad.blockHasInteracted;
+
+            exitBlock.Position = new Point(exitLoad.blockRectPosX,exitLoad.blockRectPosY);
+            exitBlock.hasPower = exitLoad.blockHasInteracted;
+
+            player.Position = new Point(PlayerLoad.PlayerPositionX, PlayerLoad.PlayerPositionY);
+            player.lives = PlayerLoad.PlayerLife;
+
+            name = currentScoreLoad.name;
+            score = currentScoreLoad.Score;
+
+            Console.WriteLine("CURRENT SIZE ON SAVE:"+softBlocks.Count);
+
+            exitStreamLoad.Close();
+
+            currentScoreStreamLoad.Close();
+            blockStreamLoad.Close();
+            enemyStreamLoad.Close();
+
+            lifePowUpStreamLoad.Close();
+            doublePowUpStreamLoad.Close();
+            playerStreamLoad.Close();
+        }
+
+        void binarySave(String fN)
+        {
+            FileStream blockStreamSave = new FileStream("BIN/" + fN + "_blockFile.DAB",FileMode.Create);
+            FileStream enemyStreamSave = new FileStream("BIN/" + fN + "enemyFile.DAB", FileMode.Create);
+            FileStream currentScoreStreamSave = new FileStream("BIN/" + fN + "CURRENT_SCORE.DAB", FileMode.Create);
+
+            FileStream lifePowUpStreamSave = new FileStream("BIN/" + fN + "lifeFile.DAB", FileMode.Create);
+            FileStream doublePowUpStreamSave = new FileStream("BIN/" + fN + "doubleFile.DAB", FileMode.Create);
+            FileStream exitStreamSave = new FileStream("BIN/" + fN + "exitFile.DAB", FileMode.Create);
+            FileStream playerStreamSave = new FileStream("BIN/" + fN + "playerFile.DAB", FileMode.Create);
+
+            BinaryFormatter binarySerialization = new BinaryFormatter();
+
+            BinarySaveClass[] saveBlocks = new BinarySaveClass[softBlocks.Count];
+            BinarySaveClass[] saveEnemies = new BinarySaveClass[enemies.Count];
+
+            BinarySaveClass saveCurrentScore = new BinarySaveClass();
+            BinarySaveClass saveLifePowUp = new BinarySaveClass();
+            BinarySaveClass saveDoublePowUp = new BinarySaveClass();
+            BinarySaveClass saveExit = new BinarySaveClass();
+
+            BinarySaveClass savePlayer = new BinarySaveClass();
+
+            Console.WriteLine(binaryScores.Count + "SCORES");
+
+            saveCurrentScore.name = name;
+            saveCurrentScore.Score = score;
+
+            for (int i = 0; i < softBlocks.Count; i++)
+            {
+                saveBlocks[i] = new BinarySaveClass();
+                    
+                saveBlocks[i].blockRectPosX = softBlocks[i].Position.X; //save posX
+                saveBlocks[i].blockRectPosY = softBlocks[i].Position.Y; // save posY
+                saveBlocks[i].blockRectWidth = softBlocks[i].BlockRect.Width; // save blockWidth
+                saveBlocks[i].blockRectHeight = softBlocks[i].BlockRect.Height; //save blockHeight
+                    
+            }
+
+            for(int i = 0; i < enemies.Count; i++)
+            {
+                saveEnemies[i] = new BinarySaveClass();
+
+                saveEnemies[i].EnemyRectPosX = enemies[i].Position.X; //save posX
+                saveEnemies[i].EnemyRectPosY = enemies[i].Position.Y; // save posY
+                saveEnemies[i].EnemyRectWidth = enemies[i].enemyRect.Width; // save blockWidth
+                saveEnemies[i].EnemyRectHeight = enemies[i].enemyRect.Height; //save blockHeight
+
+                saveEnemies[i].EnemyDirection = enemies[i].decision;
+                saveEnemies[i].EnemyTimer = enemies[i].Timer;
+            }
+           
+            
+
+            saveLifePowUp.blockRectPosX = FireBlock.Position.X;
+            saveLifePowUp.blockRectPosY = FireBlock.Position.Y;
+            saveLifePowUp.blockRectWidth = FireBlock.BlockRect.Width;
+            saveLifePowUp.blockRectHeight = FireBlock.BlockRect.Height;
+            saveLifePowUp.blockHasInteracted = FireBlock.hasPower;
+
+            saveDoublePowUp.blockRectPosX = DoubleBlock.Position.X;
+            saveDoublePowUp.blockRectPosY = DoubleBlock.Position.Y;
+            saveDoublePowUp.blockRectWidth = DoubleBlock.BlockRect.Width;
+            saveDoublePowUp.blockRectHeight = DoubleBlock.BlockRect.Height;
+            saveDoublePowUp.blockHasInteracted = DoubleBlock.hasPower;
+
+            savePlayer.PlayerPositionX = player.Position.X;
+            savePlayer.PlayerPositionY = player.Position.Y;
+            savePlayer.PlayerLife = player.lives;
+
+            saveExit.blockRectPosX = exitBlock.Position.X;
+            saveExit.blockRectPosY = exitBlock.Position.Y;
+            saveExit.blockHasInteracted = exitBlock.hasPower;
+
+            binarySerialization.Serialize(currentScoreStreamSave, saveCurrentScore);
+
+            binarySerialization.Serialize(blockStreamSave, saveBlocks);
+            binarySerialization.Serialize(enemyStreamSave, saveEnemies);
+            binarySerialization.Serialize(exitStreamSave, saveExit);
+
+            binarySerialization.Serialize(lifePowUpStreamSave, saveLifePowUp);
+            binarySerialization.Serialize(doublePowUpStreamSave, saveDoublePowUp);
+            binarySerialization.Serialize(playerStreamSave, savePlayer);
+
+            currentScoreStreamSave.Close();
+
+            blockStreamSave.Close();
+            enemyStreamSave.Close();
+            exitStreamSave.Close();
+
+            lifePowUpStreamSave.Close();
+            doublePowUpStreamSave.Close();
+            playerStreamSave.Close();
+
+            
+            Console.WriteLine("SAVED! CURRENT SIZE ON LOAD:" + softBlocks.Count);
+
+        }
         #endregion
         #endregion
 
@@ -1573,8 +1834,6 @@ namespace ImprovisedTextField
             int RightPosition = 0;
             int BottomPosition = 0;
 
-
-      
             for (int TopX = 0; TopX < 17; TopX++) // generate top region of the the wall
             {
                 RightPosition = 40 * TopX; //the last index's point value will be used for the bottom portion

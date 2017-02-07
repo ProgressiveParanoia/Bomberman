@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 namespace ImprovisedTextField
-{
+{   [Serializable]
     public class enemyList
     {
         private Rectangle previousBlock;
@@ -111,6 +111,8 @@ namespace ImprovisedTextField
             get { return Decision; }
             set { Decision = value; }
         }
+
+        
         public void move()
         {
             RandomizeDirection();

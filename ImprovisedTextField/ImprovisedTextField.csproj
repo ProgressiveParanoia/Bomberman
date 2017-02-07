@@ -38,6 +38,7 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="BinarySaveClass.cs" />
     <Compile Include="Blocks.cs" />
     <Compile Include="Bomb.cs" />
     <Compile Include="Button.cs" />
